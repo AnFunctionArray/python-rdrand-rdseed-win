@@ -7,9 +7,11 @@
 
 
 #include "include/rdrand.h"
+#include <intrin.h>
+#include <immintrin.h>
 
 #include <stdio.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -21,26 +23,18 @@ typedef struct {
 } CPUIDinfo;
 
 void get_cpuid_windows(int leaf, CPUIDinfo *info) {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
+    uint32_t arr[4];
 
-    asm("\n\
-        mov %4, %%eax\n\
-        cpuid\n\
-        mov %%eax,%0\n\
-        mov %%ebx,%1\n\
-        mov %%ecx,%2\n\
-        mov %%edx,%3":"=r"(a),"=r"(b),"=r"(c),"=r"(d):"r"(leaf):"%eax","%ebx","%ecx","%edx");
-        info->EAX = a;
-        info->EBX = b;
-        info->ECX = c;
-        info->EDX = d;
+    __cpuid(arr, 4);
+
+    info->EAX = arr[0];
+    info->EBX = arr[1];
+    info->ECX = arr[2];
+    info->EDX = arr[3];
 }
 
 
-/* Trying GAS format to make clang happy */
+/* Trying GAS format to make clang happy * /
 void get_cpuid_linux(CPUIDinfo *info, const uint32_t func, const uint32_t subfunc) {
 
     asm(".intel_syntax noprefix;\n\
@@ -64,7 +58,7 @@ void get_cpuid_linux(CPUIDinfo *info, const uint32_t func, const uint32_t subfun
     pop rax;\n\
     .att_syntax prefix\n");
 }
-
+*/
 #ifdef __i386__
 int _have_cpuid() {
 
@@ -148,6 +142,7 @@ int check_rdseed() {
 }
 
 int rdrand_check_support() {
+    return 1;
 #ifdef __i386___
     if (!_have_cpuid()) return 0;
 #endif
@@ -158,6 +153,7 @@ int rdrand_check_support() {
 }
 
 int rdseed_check_support() {
+    return 1;
 #ifdef __i386___
     if (!_have_cpuid()) return 0;
 #endif
@@ -177,13 +173,13 @@ int rdrand16_step(uint16_t *therand) {
     uint16_t foo;
     int cf_error_status;
 
-    asm("\n\
+    /*asm("\n\
             rdrand %%ax;\n\
             mov $1,%%edx;\n\
             cmovae %%ax,%%dx;\n\
             mov %%edx,%1;\n\
-            mov %%ax, %0;":"=r"(foo),"=r"(cf_error_status)::"%ax","%dx");
-            *therand = foo;
+            mov %%ax, %0;":"=r"(foo),"=r"(cf_error_status)::"%ax","%dx");*/
+    _rdrand16_step(therand);
 
     return cf_error_status;
 }
@@ -193,13 +189,7 @@ int rdseed16_step(uint16_t *therand)
     uint16_t foo;
     int cf_error_status;
 
-    asm("\n\
-            rdseed %%ax;\n\
-            mov $1,%%edx;\n\
-            cmovae %%ax,%%dx;\n\
-            mov %%edx,%1;\n\
-            mov %%ax, %0;":"=r"(foo),"=r"(cf_error_status)::"%ax","%dx");
-            *therand = foo;
+    _rdseed16_step(therand);
 
     return cf_error_status;
 }
@@ -213,13 +203,7 @@ int rdrand32_step(uint32_t *therand) {
     int foo;
     int cf_error_status;
 
-    asm("\n\
-        rdrand %%eax;\n\
-            mov $1,%%edx;\n\
-            cmovae %%eax,%%edx;\n\
-            mov %%edx,%1;\n\
-            mov %%eax,%0;":"=r"(foo),"=r"(cf_error_status)::"%eax","%edx");
-            *therand = foo;
+    _rdrand32_step(therand);
 
     return cf_error_status;
 }
@@ -229,13 +213,7 @@ int rdseed32_step(uint32_t *therand) {
     int foo;
     int cf_error_status;
 
-    asm("\n\
-        rdseed %%eax;\n\
-            mov $1,%%edx;\n\
-            cmovae %%eax,%%edx;\n\
-            mov %%edx,%1;\n\
-            mov %%eax,%0;":"=r"(foo),"=r"(cf_error_status)::"%eax","%edx");
-            *therand = foo;
+    _rdseed32_step(therand);
 
     return cf_error_status;
 }
@@ -247,15 +225,9 @@ int rdseed32_step(uint32_t *therand) {
 int rdrand64_step(uint64_t *therand) {
         
     uint64_t foo;
-    int cf_error_status;
+    int cf_error_status = 1;
 
-    asm("\n\
-            rdrand %%rax;\n\
-            mov $1,%%edx;\n\
-            cmovae %%rax,%%rdx;\n\
-            mov %%edx,%1;\n\
-            mov %%rax, %0;":"=r"(foo),"=r"(cf_error_status)::"%rax","%rdx");
-            *therand = foo;
+    while (!_rdrand64_step(therand));
 
     return cf_error_status;
 }
@@ -263,15 +235,9 @@ int rdrand64_step(uint64_t *therand) {
 int rdseed64_step(uint64_t *therand) {
 
     uint64_t foo;
-    int cf_error_status;
+    int cf_error_status = 1;
 
-    asm("\n\
-            rdseed %%rax;\n\
-            mov $1,%%edx;\n\
-            cmovae %%rax,%%rdx;\n\
-            mov %%edx,%1;\n\
-            mov %%rax, %0;":"=r"(foo),"=r"(cf_error_status)::"%rax","%rdx");
-            *therand = foo;
+    while(!_rdseed64_step(therand));
 
     return cf_error_status;
 }

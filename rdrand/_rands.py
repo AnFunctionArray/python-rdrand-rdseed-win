@@ -13,7 +13,7 @@ __all__ = [
     'real64',
     'real32',
     'res53',
-    'rand32',
+    'rseed64',
     'rand64',
     'randint',
     'randbelow',
@@ -49,14 +49,12 @@ def res53() -> float:
     return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0)
 
 
-def rand32() -> int:
-    """ Return a 32 bit random integer """
-    return _rdrand.rdrand32()
-
-
 def rand64() -> int:
-    """ Return a 64 bit random integer """
     return _rdrand.rdrand64()
+
+
+def rseed64() -> int:
+    return _rdrand.rdseed()
 
 
 def randrange(start, stop=None, *, step=1):

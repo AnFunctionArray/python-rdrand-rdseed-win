@@ -5,6 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
+#define __CHAR_BIT__ 8
 
 #include <stdio.h>
 #include <string.h>
@@ -26,7 +27,7 @@ unsigned int absolute(int value) {
     return result;
 }
 
-char generate_rdrand64_ia32(float *randf, float min, float max) {
+/*char generate_rdrand64_ia32(float* randf, float min, float max) {
     int retries = 10;
     unsigned long long rand64;
 
@@ -37,7 +38,7 @@ char generate_rdrand64_ia32(float *randf, float min, float max) {
         }
     }
     return 0;
-}
+}*/
 
 char generate_rdrand64(uint64_t *number) {
 

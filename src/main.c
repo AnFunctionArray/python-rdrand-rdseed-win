@@ -32,7 +32,7 @@ static PyObject* rdrand32(PyObject* self) {
 static PyObject* rdrand64(PyObject* self) {
     uint64_t randf;
     generate_rdrand64(&randf);
-    return PyLong_FromUnsignedLong(randf);
+    return PyLong_FromUnsignedLongLong(randf);
 }
 
 static PyObject* randbits(PyObject* self, PyObject* args) {
@@ -322,9 +322,10 @@ static PyObject* is_rdseed_supported(PyObject* self) {
 static PyObject* rdseed(PyObject* self) {
 
     uint64_t retn = 0;
-    generate_rdseed(&retn);
+   // generate_rdseed(&retn);
+    rdseed64_step(&retn);
 
-    return (PyObject*) PyLong_FromLong(retn);
+    return (PyObject*)PyLong_FromUnsignedLongLong(retn);
 }
 
 static PyMethodDef methods[] = {
